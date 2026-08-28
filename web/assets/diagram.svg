@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" font-family="'DejaVu Sans Mono',monospace">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#EF5A26" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#EF5A26" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+      <path d="M50 0H0V50" fill="none" stroke="#E8E3DA" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1600" height="900" fill="#FCFAF7"/>
+  <rect width="1600" height="900" fill="url(#grid)" opacity="0.55"/>
+  <rect width="1600" height="900" fill="url(#glow)"/>
+  <g transform="translate(380,110) scale(1.5)">
+    <!-- left connectors (fees in) -->
+    <g fill="none" stroke="#DAD4C8" stroke-width="1.4">
+      <path d="M150,70 C205,70 205,205 232,205"/><path d="M150,150 C205,150 210,205 232,205"/>
+      <path d="M150,290 C205,290 210,235 232,235"/><path d="M150,370 C205,370 205,235 232,235"/>
+    </g>
+    <g fill="none" stroke="#EF5A26" stroke-width="1.8" stroke-dasharray="3 8">
+      <path d="M150,70 C205,70 205,205 232,205"/><path d="M150,150 C205,150 210,205 232,205"/>
+      <path d="M150,290 C205,290 210,235 232,235"/><path d="M150,370 C205,370 205,235 232,235"/>
+    </g>
+    <!-- right connectors (ETH out) -->
+    <g fill="none" stroke="#DAD4C8" stroke-width="1.4">
+      <path d="M328,205 C355,205 355,70 410,70"/><path d="M328,205 C350,205 355,150 410,150"/>
+      <path d="M332,235 C350,235 355,290 410,290"/><path d="M332,235 C355,235 355,370 410,370"/>
+    </g>
+    <g fill="none" stroke="#EF5A26" stroke-width="1.8" stroke-dasharray="3 8">
+      <path d="M328,205 C355,205 355,70 410,70"/><path d="M328,205 C350,205 355,150 410,150"/>
+      <path d="M332,235 C350,235 355,290 410,290"/><path d="M332,235 C355,235 355,370 410,370"/>
+    </g>
+    <!-- moving-dot markers (static positions) -->
+    <g fill="#EF5A26"><circle cx="196" cy="120" r="3.4"/><circle cx="360" cy="120" r="3.4"/><circle cx="205" cy="300" r="3.4"/><circle cx="360" cy="300" r="3.4"/></g>
+    <!-- left labels -->
+    <g font-size="11" fill="#6B6A63">
+      <rect x="142" y="66" width="6" height="6" fill="#9A978E"/><text x="134" y="73" text-anchor="end">3% BUY</text>
+      <rect x="142" y="146" width="6" height="6" fill="#9A978E"/><text x="134" y="153" text-anchor="end">3% SELL</text>
+      <rect x="142" y="286" width="6" height="6" fill="#9A978E"/><text x="134" y="293" text-anchor="end">TRADE FEE</text>
+      <rect x="142" y="366" width="6" height="6" fill="#9A978E"/><text x="134" y="373" text-anchor="end">ETH IN</text>
+    </g>
+    <!-- right end nodes + labels -->
+    <g font-size="11" fill="#6B6A63">
+      <rect x="410" y="62" width="14" height="14" rx="3" fill="#fff" stroke="#DAD4C8" stroke-width="1.4"/><text x="432" y="73">STAKER 01</text>
+      <rect x="410" y="142" width="14" height="14" rx="3" fill="#fff" stroke="#DAD4C8" stroke-width="1.4"/><text x="432" y="153">STAKER 02</text>
+      <rect x="410" y="282" width="14" height="14" rx="3" fill="#fff" stroke="#DAD4C8" stroke-width="1.4"/><text x="432" y="293">STAKER 03</text>
+      <rect x="410" y="362" width="14" height="14" rx="3" fill="#fff" stroke="#DAD4C8" stroke-width="1.4"/><text x="432" y="373" fill="#EF5A26">YOUR ETH</text>
+    </g>
+    <!-- vault -->
+    <rect x="232" y="188" width="96" height="64" rx="10" fill="#fff" stroke="#111210" stroke-width="1.6"/>
+    <text x="280" y="214" text-anchor="middle" font-size="11" font-weight="700" fill="#111210">SKIMFLOW</text>
+    <text x="280" y="230" text-anchor="middle" font-size="11" font-weight="700" fill="#111210">VAULT</text>
+    <g>
+      <rect x="243" y="196" width="4" height="4" fill="#EF5A26"/><rect x="249" y="200" width="4" height="4" fill="#3B82F6"/>
+      <rect x="243" y="204" width="4" height="4" fill="#22C55E"/><rect x="255" y="197" width="4" height="4" fill="#EAB308"/>
+      <rect x="311" y="197" width="4" height="4" fill="#3B82F6"/><rect x="317" y="203" width="4" height="4" fill="#22C55E"/>
+      <rect x="311" y="243" width="4" height="4" fill="#EAB308"/><rect x="318" y="240" width="4" height="4" fill="#EF5A26"/>
+    </g>
+  </g>
+</svg>

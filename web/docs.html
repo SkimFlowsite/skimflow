@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Skimflow — Documentation & Whitepaper</title>
+<meta name="description" content="How Skimflow works: real ETH yield from trade fees, the fee split, the on-chain accrual model, security assumptions, and risks." />
+<meta property="og:title" content="Skimflow Docs" />
+<meta property="og:description" content="The Skimflow whitepaper: stake $SKIM, skim real trade fees in ETH. Mechanism, math, security, and risks." />
+<meta property="og:image" content="https://skimflow.site/assets/og.png" />
+<meta property="og:type" content="article" />
+<meta name="twitter:card" content="summary_large_image" />
+
+<link rel="icon" href="/assets/favicon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<style>
+  :root{
+    --bg:#FCFAF7;--panel:#FFFFFF;--soft:#F5F2EC;--ink:#111210;--muted:#6B6A63;--dim:#9A978E;
+    --line:#E8E3DA;--line2:#DAD4C8;--acc:#EF5A26;--acc-soft:#FCE9DF;--mono:'Space Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.6}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+  .mono{font-family:var(--mono)}
+
+  header{position:sticky;top:0;z-index:40;background:rgba(252,250,247,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:62px}
+  .logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:18px;letter-spacing:-.01em}
+  .logo .glyph{width:24px;height:24px}
+  .nav a.back{font-size:14px;color:var(--muted);display:inline-flex;align-items:center;gap:7px}
+  .nav a.back:hover{color:var(--ink)}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:14px;padding:9px 16px;border-radius:9px;border:1px solid var(--ink);background:var(--ink);color:#fff}
+
+  .head{padding:56px 0 34px;border-bottom:1px solid var(--line)}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--acc)}
+  .head h1{font-weight:800;font-size:clamp(32px,5vw,50px);letter-spacing:-.02em;margin-top:12px}
+  .head p{color:var(--muted);margin-top:14px;max-width:64ch;font-size:16.5px}
+  .meta{margin-top:18px;font-family:var(--mono);font-size:12px;color:var(--dim);display:flex;gap:18px;flex-wrap:wrap}
+
+  .docs{display:grid;grid-template-columns:230px 1fr;gap:52px;padding:40px 0 90px}
+  @media(max-width:880px){.docs{grid-template-columns:1fr;gap:24px}}
+  .toc{position:sticky;top:84px;align-self:start;font-size:13.5px}
+  @media(max-width:880px){.toc{position:static;border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:var(--panel)}}
+  .toc .t{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:12px}
+  .toc a{display:block;color:var(--muted);padding:6px 0;border-left:2px solid transparent;padding-left:12px;margin-left:-12px}
+  .toc a:hover{color:var(--ink);border-color:var(--acc)}
+
+  article{max-width:720px;min-width:0}
+  article section{padding:28px 0;border-top:1px solid var(--line)}
+  article section:first-child{border-top:0;padding-top:4px}
+  article h2{font-weight:800;font-size:clamp(22px,3vw,28px);letter-spacing:-.01em;scroll-margin-top:84px}
+  article h2 .num{font-family:var(--mono);color:var(--acc);font-size:16px;margin-right:10px}
+  article h3{font-size:17px;font-weight:700;margin-top:22px}
+  article p{color:#33322d;margin-top:12px;font-size:15.5px}
+  article ul{margin:12px 0 0 20px;color:#33322d;font-size:15.5px}
+  article li{margin-top:7px}
+  article strong{color:var(--ink)}
+  code{font-family:var(--mono);font-size:13px;background:var(--soft);padding:1px 6px;border-radius:5px}
+  pre{margin-top:16px;background:#15140f;color:#e9e5da;border-radius:12px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.7}
+  pre .c{color:#9a958a}
+  pre .o{color:#ff8a5c}
+  .callout{margin-top:18px;border:1px solid var(--line2);border-left:3px solid var(--acc);border-radius:10px;background:var(--soft);padding:14px 18px;font-size:14.5px;color:var(--muted)}
+  .callout b{color:var(--ink)}
+  table{width:100%;border-collapse:collapse;margin-top:16px;font-size:14.5px}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line)}
+  th{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  td.k{color:var(--muted)}
+  td .m{font-family:var(--mono)}
+  .pill{display:inline-block;font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:999px;background:var(--acc-soft);color:#b8431a}
+
+  .phase{display:grid;grid-template-columns:96px 1fr;gap:16px;padding:16px 0;border-bottom:1px solid var(--line)}
+  .phase:last-child{border-bottom:0}
+  .phase .p{font-family:var(--mono);font-size:12px;color:var(--acc)}
+  .phase h4{font-size:15.5px;font-weight:700}
+  .phase p{margin-top:4px;font-size:14px;color:var(--muted)}
+
+  footer{border-top:1px solid var(--line);padding:36px 0 54px}
+  footer .disc{font-size:12.5px;color:var(--dim);max-width:74ch}
+  footer .logo{margin-bottom:14px}
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="nav wrap">
+    <a class="logo" href="/">
+      <svg class="glyph" viewBox="0 0 30 26" fill="none"><path d="M3 20c4.5-3 9-3 13.5 0s7 2.4 10.5 .4" stroke="#111210" stroke-width="2.6" stroke-linecap="round"/><path d="M3 14c4.5-3 9-3 13.5 0s7 2.4 10.5 .4" stroke="#111210" stroke-width="2.6" stroke-linecap="round"/><path d="M4 8.6c4-2.6 8-2 11 .6" stroke="#EF5A26" stroke-width="2.6" stroke-linecap="round"/><circle cx="22" cy="4.6" r="2.6" fill="#EF5A26"/></svg>
+      Skimflow
+    </a>
+    <a class="back" href="/">&larr; Back to site</a>
+  </nav>
+</header>
+
+<div class="head">
+  <div class="wrap">
+    <p class="eyebrow">Documentation · Whitepaper</p>
+    <h1>How Skimflow works</h1>
+    <p>Skimflow turns trading fees into staking yield. Stake $SKIM and receive a pro-rata share of the fees every trade pays, settled in ETH, on Robinhood Chain. This document describes the model, the on-chain mechanism, the fee split, security assumptions, and risks.</p>
+    <div class="meta"><span>ROBINHOOD CHAIN · 4663</span><span>VERSION 0.1 · DRAFT</span><span>STATUS · PRE-LAUNCH</span></div>
+  </div>
+</div>
+
+<div class="wrap docs">
+  <aside class="toc">
+    <div class="t">Contents</div>
+    <a href="#abstract">Abstract</a>
+    <a href="#problem">1 · The problem</a>
+    <a href="#model">2 · The model</a>
+    <a href="#mechanism">3 · Mechanism</a>
+    <a href="#accrual">4 · Accrual math</a>
+    <a href="#token">5 · The $SKIM token</a>
+    <a href="#treasury">6 · Protocol treasury</a>
+    <a href="#security">7 · Security</a>
+    <a href="#risks">8 · Risks</a>
+    <a href="#parameters">9 · Parameters</a>
+    <a href="#roadmap">10 · Roadmap</a>
+  </aside>
+
+  <article>
+    <section id="abstract">
+      <h2>Abstract</h2>
+      <p>Most staking pays rewards by printing new tokens. That dilutes holders and only lasts while emissions last. Skimflow pays rewards from a real, recurring source instead: the fee charged on every trade of its own token. A <strong>3% fee in ETH</strong> is taken on each buy and sell, routed to a vault contract, and streamed to stakers pro rata. There is no inflation and no team funding of rewards. Yield exists exactly as long as people trade.</p>
+    </section>
+
+    <section id="problem">
+      <h2><span class="num">1</span>The problem with emissions staking</h2>
+      <p>Classic staking programs advertise high APRs, but the rewards are freshly minted tokens. That has three consequences:</p>
+      <ul>
+        <li><strong>Dilution.</strong> Every reward increases supply, pushing price down for everyone who is not farming.</li>
+        <li><strong>A countdown.</strong> Emissions run out. When they slow, the yield collapses and the capital leaves.</li>
+        <li><strong>Misaligned payout.</strong> You are paid in more of the same token you are trying to accumulate, not in a hard asset.</li>
+      </ul>
+      <p>The yield looks real until you notice you are paying yourself with your own supply.</p>
+    </section>
+
+    <section id="model">
+      <h2><span class="num">2</span>The Skimflow model</h2>
+      <p>Skimflow replaces printed rewards with earned revenue. The token, <strong>$SKIM</strong>, trades on a Uniswap v4 pool that charges a fee on every swap. That fee is not spent on marketing or held by a wallet — it is paid straight to the people who stake $SKIM.</p>
+      <p>In one line: <strong>stake $SKIM, and you become the house.</strong> Every trade pays a toll, and stakers collect it in ETH, proportional to their share of the staked pool, for as long as they stake.</p>
+      <div class="callout"><b>No lockups, no custody.</b> Staking and claiming are non-custodial. Your stake and your rewards live in the vault contract and can be withdrawn by your wallet at any time.</div>
+    </section>
+
+    <section id="mechanism">
+      <h2><span class="num">3</span>Mechanism</h2>
+      <h3>3.1 Fee source</h3>
+      <p>The $SKIM pool uses a Uniswap v4 hook that charges <strong>3% in ETH on every swap</strong>, on both buys and sells. The fee is taken in ETH rather than in $SKIM, so rewards are a hard asset and the token itself carries no transfer tax.</p>
+      <h3>3.2 Routing</h3>
+      <p>The hook's fee recipient is the <strong>Skimflow vault contract</strong>, not an externally owned wallet. Every fee therefore arrives on chain at a contract whose only job is to account for and distribute it.</p>
+      <h3>3.3 Fee split</h3>
+      <p>Each incoming fee is split on chain:</p>
+      <ul>
+        <li><span class="pill">85%</span> streamed to stakers, in ETH, pro rata by share.</li>
+        <li><span class="pill">15%</span> to the protocol treasury, for liquidity, development, and operations.</li>
+      </ul>
+      <p>The split is enforced by the contract, not by discretion, and is readable on the explorer.</p>
+      <h3>3.4 Stake, claim, unstake</h3>
+      <p>Staking deposits $SKIM and records your share. Claiming sends your accrued ETH to your wallet. Unstaking returns your $SKIM. There are no epochs, no windows, and no penalties; accrual is continuous.</p>
+    </section>
+
+    <section id="accrual">
+      <h2><span class="num">4</span>Accrual math</h2>
+      <p>Rewards use a standard accumulator so that distribution is O(1) regardless of how many stakers exist. The vault tracks a running <code>accRewardPerShare</code>. When a fee of <code>feeIn</code> ETH arrives and <code>totalStaked</code> is non-zero:</p>
+      <pre><span class="c">// on each fee arrival (85% of the 3% trade fee)</span>
+accRewardPerShare += feeIn * 1e18 / totalStaked
+
+<span class="c">// a staker's claimable ETH at any time</span>
+pending(user) = stake[user] * accRewardPerShare / 1e18
+              <span class="o">-</span> rewardDebt[user]
+
+<span class="c">// on stake / unstake / claim, settle then reset the debt</span>
+rewardDebt[user] = stake[user] * accRewardPerShare / 1e18</pre>
+      <p>Because <code>accRewardPerShare</code> only ever moves forward while you are staked, you earn exactly your share of the fees that arrive during your staking period, and nothing before or after. Depositing does not dilute past rewards, and leaving does not forfeit earned rewards.</p>
+    </section>
+
+    <section id="token">
+      <h2><span class="num">5</span>The $SKIM token</h2>
+      <p>$SKIM is a fixed-supply ERC-20 of <strong>1,000,000,000</strong> tokens, minted once, with no transfer tax. Its single utility is access to the fee stream: to skim, you stake $SKIM. Demand to earn therefore translates into demand to hold and stake the token. Final allocation is published at launch; the founder allocation is staked into the same vault under the same rules as everyone else.</p>
+    </section>
+
+    <section id="treasury">
+      <h2><span class="num">6</span>Protocol treasury</h2>
+      <p>The 15% treasury share is the only revenue the protocol keeps, and it is transparent by design. It funds deepening the liquidity pool, contract audits and development, and ongoing operations. It is not a hidden tax: the split is stated here, shown on the site, and enforced on chain.</p>
+    </section>
+
+    <section id="security">
+      <h2><span class="num">7</span>Security &amp; trust assumptions</h2>
+      <ul>
+        <li><strong>Non-custodial.</strong> Staked $SKIM and accrued ETH are held by the vault and withdrawable only by their owner.</li>
+        <li><strong>No admin over stakes.</strong> There is no function that lets any owner pause withdrawals or move deposited funds. Exit never needs permission.</li>
+        <li><strong>Fixed rules.</strong> The fee split and accrual logic are set in the deployed contract; the core is designed to be non-upgradeable.</li>
+        <li><strong>Verifiable.</strong> The vault, the token, and every distribution are readable on Blockscout. Trust the explorer, not a dashboard.</li>
+      </ul>
+    </section>
+
+    <section id="risks">
+      <h2><span class="num">8</span>Risks</h2>
+      <ul>
+        <li><strong>Variable yield.</strong> Rewards track trading volume. In quiet markets the stream pays little or nothing. No rate is fixed or guaranteed.</li>
+        <li><strong>Volume dependence.</strong> The model has no yield without trades. It is not a fixed-income product.</li>
+        <li><strong>Smart-contract risk.</strong> On-chain code can contain bugs. Review the contracts and never stake more than you can afford to lose.</li>
+        <li><strong>Timing.</strong> Because accrual is continuous, rewards favour those staked when volume occurs. Staking around known large trades is possible but the accumulator limits its edge.</li>
+        <li><strong>Market risk.</strong> $SKIM is a volatile asset. Its price can fall regardless of fee income.</li>
+      </ul>
+    </section>
+
+    <section id="parameters">
+      <h2><span class="num">9</span>Parameters</h2>
+      <table>
+        <tr><th>Parameter</th><th>Value</th></tr>
+        <tr><td class="k">Chain</td><td class="m">Robinhood Chain · 4663</td></tr>
+        <tr><td class="k">Token</td><td class="m">$SKIM · 1,000,000,000 fixed supply</td></tr>
+        <tr><td class="k">Trade fee</td><td class="m">3% per swap, in ETH</td></tr>
+        <tr><td class="k">Fee split</td><td class="m">85% stakers · 15% treasury</td></tr>
+        <tr><td class="k">Lockup</td><td class="m">None</td></tr>
+        <tr><td class="k">Custody</td><td class="m">Non-custodial</td></tr>
+        <tr><td class="k">Payout asset</td><td class="m">ETH</td></tr>
+        <tr><td class="k">Contracts</td><td class="m">Published at launch · Blockscout</td></tr>
+      </table>
+    </section>
+
+    <section id="roadmap">
+      <h2><span class="num">10</span>Roadmap</h2>
+      <div class="phase"><div class="p">PHASE 0</div><div><h4>Model &amp; docs</h4><p>Publish the mechanism, the fee split, and this document. You are here.</p></div></div>
+      <div class="phase"><div class="p">PHASE 1</div><div><h4>Contracts</h4><p>Ship the vault and the fee hook, verified on Blockscout, with the 85/15 split enforced on chain.</p></div></div>
+      <div class="phase"><div class="p">PHASE 2</div><div><h4>Launch</h4><p>Deploy $SKIM, seed liquidity, open the vault. Staking and claiming go live.</p></div></div>
+      <div class="phase"><div class="p">PHASE 3</div><div><h4>Depth</h4><p>Grow volume and liquidity, and use the treasury to reinforce both.</p></div></div>
+    </section>
+  </article>
+</div>
+
+<footer>
+  <div class="wrap">
+    <a class="logo" href="/">
+      <svg class="glyph" viewBox="0 0 30 26" fill="none"><path d="M3 20c4.5-3 9-3 13.5 0s7 2.4 10.5 .4" stroke="#111210" stroke-width="2.6" stroke-linecap="round"/><path d="M3 14c4.5-3 9-3 13.5 0s7 2.4 10.5 .4" stroke="#111210" stroke-width="2.6" stroke-linecap="round"/><path d="M4 8.6c4-2.6 8-2 11 .6" stroke="#EF5A26" stroke-width="2.6" stroke-linecap="round"/><circle cx="22" cy="4.6" r="2.6" fill="#EF5A26"/></svg>
+      Skimflow
+    </a>
+    <p class="disc">This document is a draft describing intended behaviour and is not final until the contracts are deployed and verified. Rewards depend on real trading volume and are not guaranteed. Skimflow is experimental on-chain software. Nothing here is financial advice.</p>
+  </div>
+</footer>
+</body>
+</html>
