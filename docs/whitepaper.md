@@ -112,6 +112,7 @@ enforced on chain.
 - **No admin over stakes.** There is no function that lets any owner pause withdrawals or move deposited funds. Exit never needs permission.
 - **Fixed rules.** The fee split and accrual logic are set in the deployed contract; the core is designed to be non-upgradeable.
 - **Verifiable.** The vault, the token, and every distribution are readable on Blockscout. Trust the explorer, not a dashboard.
+- **No stuck fees.** When no one is staked, a fee has no stakers to accrue to, so the whole amount routes to the treasury rather than being lost. A `sweepUnaccounted()` function can recover rounding dust or ETH force-sent to the contract, but it is mathematically bounded to `balance − rewards owed to stakers` and can never touch a staker's earned ETH.
 
 ## 8 · Risks
 

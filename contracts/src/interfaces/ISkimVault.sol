@@ -24,6 +24,9 @@ interface ISkimVault {
     /// @notice Emitted when `ethAmount` (the 85% staker share) is distributed to the pool.
     event FeeDistributed(uint256 ethAmount, uint256 accRewardPerShare);
 
+    /// @notice Emitted when unaccounted ETH is swept to the treasury.
+    event Swept(uint256 ethAmount);
+
     /*//////////////////////////////////////////////////////////////
                                 MUTATIVE
     //////////////////////////////////////////////////////////////*/
@@ -46,9 +49,22 @@ interface ISkimVault {
     ///      identically for plain ETH transfers.
     function notifyFee() external payable;
 
+    /// @notice Send ETH that is NOT owed to any staker to the treasury.
+    /// @dev Permissionless, but the destination is the immutable treasury, so a caller
+    ///      cannot redirect funds. The amount is provably bounded to
+    ///      `address(this).balance - (totalStakerRewards - totalClaimed)` — it can
+    ///      never touch ETH that has been credited to stakers. Recovers rounding dust
+    ///      and ETH force-sent to the contract outside the fee path.
+    /// @return ethAmount The amount swept to the treasury.
+    function sweepUnaccounted() external returns (uint256 ethAmount);
+
     /*//////////////////////////////////////////////////////////////
                                   VIEWS
     //////////////////////////////////////////////////////////////*/
+
+    /// @notice ETH currently in the contract that is not owed to any staker and may
+    ///         be swept to the treasury.
+    function unaccounted() external view returns (uint256);
 
     /// @notice The $SKIM token being staked.
     function skim() external view returns (address);

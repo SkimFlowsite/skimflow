@@ -53,6 +53,11 @@ contract SkimVault is ISkimVault {
     mapping(address => uint256) private _rewardDebt;
     mapping(address => uint256) private _accrued; // settled-but-unclaimed ETH
 
+    /// @notice Cumulative ETH ever credited to stakers (the 85% cut, all-time).
+    uint256 public totalStakerRewards;
+    /// @notice Cumulative ETH ever claimed by stakers.
+    uint256 public totalClaimed;
+
     /*//////////////////////////////////////////////////////////////
                              REENTRANCY GUARD
     //////////////////////////////////////////////////////////////*/
@@ -132,10 +137,22 @@ contract SkimVault is ISkimVault {
         require(ethAmount > 0, "NOTHING_TO_CLAIM");
 
         _accrued[msg.sender] = 0; // effects before interaction
+        totalClaimed += ethAmount;
         (bool ok,) = msg.sender.call{ value: ethAmount }("");
         require(ok, "ETH_TRANSFER_FAIL");
 
         emit Claimed(msg.sender, ethAmount);
+    }
+
+    /// @inheritdoc ISkimVault
+    function sweepUnaccounted() external nonReentrant returns (uint256 ethAmount) {
+        ethAmount = unaccounted();
+        require(ethAmount > 0, "NOTHING_TO_SWEEP");
+
+        (bool ok,) = _treasury.call{ value: ethAmount }("");
+        require(ok, "SWEEP_TRANSFER_FAIL");
+
+        emit Swept(ethAmount);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -168,6 +185,15 @@ contract SkimVault is ISkimVault {
         return _accrued[user] + (acc - _rewardDebt[user]);
     }
 
+    /// @inheritdoc ISkimVault
+    function unaccounted() public view returns (uint256) {
+        // Everything still owed to stakers (over-estimated by rounding dust, so this
+        // never under-protects). Anything the contract holds beyond it is unaccounted.
+        uint256 owed = totalStakerRewards - totalClaimed;
+        uint256 bal = address(this).balance;
+        return bal > owed ? bal - owed : 0;
+    }
+
     /*//////////////////////////////////////////////////////////////
                                 INTERNAL
     //////////////////////////////////////////////////////////////*/
@@ -185,6 +211,7 @@ contract SkimVault is ISkimVault {
             treasuryCut = (amount * TREASURY_BPS) / BPS;
             stakersCut = amount - treasuryCut;
             accRewardPerShare += (stakersCut * ACC_PRECISION) / _totalStaked;
+            totalStakerRewards += stakersCut;
         }
 
         emit FeeDistributed(stakersCut, accRewardPerShare);

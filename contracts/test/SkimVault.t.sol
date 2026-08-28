@@ -166,6 +166,55 @@ contract SkimVaultTest is Test {
     }
 
     /*//////////////////////////////////////////////////////////////
+                            SWEEP UNACCOUNTED
+    //////////////////////////////////////////////////////////////*/
+
+    function test_FeeLeavesOnlyStakerShareInVault() public {
+        _stake(alice, 100 * ONE);
+        _fee(1 * ONE);
+        // 0.15 already sent to treasury; only the 0.85 staker share sits in the vault
+        assertEq(address(vault).balance, 0.85 * 1e18);
+        assertEq(vault.unaccounted(), 0, "nothing unaccounted");
+    }
+
+    function test_SweepCannotTouchStakerRewards() public {
+        _stake(alice, 100 * ONE);
+        _fee(1 * ONE);
+
+        // the 0.85 is owed to alice -> sweep must find nothing
+        vm.expectRevert("NOTHING_TO_SWEEP");
+        vault.sweepUnaccounted();
+
+        // alice still gets her full reward
+        vm.prank(alice);
+        assertEq(vault.claim(), 0.85 * 1e18);
+    }
+
+    function test_SweepRecoversForceSentEth() public {
+        _stake(alice, 100 * ONE);
+        _fee(1 * ONE); // vault holds 0.85 owed to alice
+
+        // someone force-sends 0.5 ETH outside the fee path (e.g. selfdestruct)
+        vm.deal(address(vault), address(vault).balance + 0.5 * 1e18);
+
+        assertEq(vault.unaccounted(), 0.5 * 1e18);
+        uint256 tBefore = treasury.balance;
+        uint256 got = vault.sweepUnaccounted();
+
+        assertEq(got, 0.5 * 1e18);
+        assertEq(treasury.balance - tBefore, 0.5 * 1e18);
+        // alice's reward untouched
+        assertEq(vault.pending(alice), 0.85 * 1e18);
+        vm.prank(alice);
+        assertEq(vault.claim(), 0.85 * 1e18);
+    }
+
+    function test_SweepRevertsWhenNothing() public {
+        vm.expectRevert("NOTHING_TO_SWEEP");
+        vault.sweepUnaccounted();
+    }
+
+    /*//////////////////////////////////////////////////////////////
                               INVARIANT-ish
     //////////////////////////////////////////////////////////////*/
 

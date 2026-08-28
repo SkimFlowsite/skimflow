@@ -15,8 +15,10 @@ Solidity contracts for the Skimflow protocol, built with [Foundry](https://book.
 and the O(1) accrual accumulator described in the
 [whitepaper](../docs/whitepaper.md#4--accrual-math). It is deliberately trustless — no
 owner, no admin, no function that can pause or move a user's stake; the token, treasury,
-and split are fixed at deployment. Covered by a unit + fuzz suite in
-[`test/SkimVault.t.sol`](test/SkimVault.t.sol).
+and split are fixed at deployment. A permissionless `sweepUnaccounted()` recovers only
+ETH that is not owed to any staker (rounding dust or force-sent ETH), sending it to the
+immutable treasury — it is provably unable to touch staker rewards. Covered by a unit +
+fuzz suite in [`test/SkimVault.t.sol`](test/SkimVault.t.sol).
 
 ## Status
 
