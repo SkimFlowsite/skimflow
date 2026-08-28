@@ -91,12 +91,9 @@ contract SkimFeeHook is BaseHook {
         poolManager.take(key.currency0, feeRecipient, feeAmount);
         emit FeeTaken(params.zeroForOne, feeAmount);
 
-        return
-            (
-                BaseHook.beforeSwap.selector,
-                toBeforeSwapDelta(int128(int256(feeAmount)), int128(0)),
-                0
-            );
+        return (
+            BaseHook.beforeSwap.selector, toBeforeSwapDelta(int128(int256(feeAmount)), int128(0)), 0
+        );
     }
 
     /// @dev ETH (currency0) is the unspecified currency here: skim the fee off the ETH leg.
