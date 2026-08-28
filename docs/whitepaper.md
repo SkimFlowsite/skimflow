@@ -11,35 +11,31 @@ the on-chain mechanism, the fee split, the accrual math, security assumptions, a
 
 ## Abstract
 
-Most staking pays rewards by printing new tokens. That dilutes holders and only lasts
-while emissions last. Skimflow pays rewards from a real, recurring source instead: the
-fee charged on every trade of its own token. A **3% fee in ETH** is taken on each buy
-and sell, routed to a vault contract, and streamed to stakers pro rata. There is no
-inflation and no team funding of rewards. Yield exists exactly as long as people trade.
+Skimflow is a staking protocol whose rewards are funded by trading fees rather than token
+emissions. A 3% fee in ETH is charged on every `$SKIM` trade, routed to a vault contract,
+and distributed to stakers pro rata. Because rewards derive from fee revenue, there is no
+inflation and no team-funded rewards budget; reward flow scales with trading volume.
 
-## 1 · The problem with emissions staking
+## 1 · Motivation
 
-Classic staking programs advertise high APRs, but the rewards are freshly minted tokens.
-That has three consequences:
+Emission-based staking pays rewards in newly minted tokens. This has three structural
+drawbacks:
 
-- **Dilution.** Every reward increases supply, pushing price down for everyone who is not farming.
-- **A countdown.** Emissions run out. When they slow, the yield collapses and the capital leaves.
-- **Misaligned payout.** You are paid in more of the same token you are trying to accumulate, not in a hard asset.
+- **Dilution.** Each reward increases supply, diluting holders who do not participate.
+- **Finite duration.** Emissions are capped; the reward rate declines as they are exhausted.
+- **Payout asset.** Rewards accrue in the staked token itself rather than an external asset.
 
-The yield looks real until you notice you are paying yourself with your own supply.
+Skimflow addresses these by paying rewards from fee revenue, denominated in ETH.
 
-## 2 · The Skimflow model
+## 2 · Model
 
-Skimflow replaces printed rewards with earned revenue. The token, `$SKIM`, trades on a
-Uniswap v4 pool that charges a fee on every swap. That fee is not spent on marketing or
-held by a wallet — it is paid straight to the people who stake `$SKIM`.
+`$SKIM` trades on a Uniswap v4 pool that charges a fee on every swap. Rather than being
+retained by the team or spent externally, that fee is distributed to stakers. A staker
+receives a share of each fee proportional to their share of total stake, for the duration
+of their stake.
 
-In one line: **stake `$SKIM`, and you become the house.** Every trade pays a toll, and
-stakers collect it in ETH, proportional to their share of the staked pool, for as long
-as they stake.
-
-> **No lockups, no custody.** Staking and claiming are non-custodial. Your stake and your
-> rewards live in the vault contract and can be withdrawn by your wallet at any time.
+Staking and claiming are non-custodial: staked `$SKIM` and accrued ETH are held by the
+vault contract and withdrawable by their owner at any time. There are no lockups.
 
 ## 3 · Mechanism
 
@@ -111,7 +107,7 @@ enforced on chain.
 - **Non-custodial.** Staked `$SKIM` and accrued ETH are held by the vault and withdrawable only by their owner.
 - **No admin over stakes.** There is no function that lets any owner pause withdrawals or move deposited funds. Exit never needs permission.
 - **Fixed rules.** The fee split and accrual logic are set in the deployed contract; the core is designed to be non-upgradeable.
-- **Verifiable.** The vault, the token, and every distribution are readable on Blockscout. Trust the explorer, not a dashboard.
+- **Verifiable.** The vault, the token, and every distribution are readable on chain via Blockscout; the protocol relies on no off-chain state.
 - **No stuck fees.** When no one is staked, a fee has no stakers to accrue to, so the whole amount routes to the treasury rather than being lost. A `sweepUnaccounted()` function can recover rounding dust or ETH force-sent to the contract, but it is mathematically bounded to `balance − rewards owed to stakers` and can never touch a staker's earned ETH.
 - **Liveness-isolated treasury.** The 15% treasury payout is best-effort and cannot revert, so even a misconfigured treasury can never brick swaps, fee settlement, or staker claims; an undelivered cut is simply left recoverable by `sweepUnaccounted()`.
 
@@ -140,7 +136,7 @@ enforced on chain.
 
 | Phase   | Milestone     | Detail                                                                       |
 | ------- | ------------- | ---------------------------------------------------------------------------- |
-| Phase 0 | Model & docs  | Publish the mechanism, the fee split, and this document. **You are here.**   |
+| Phase 0 | Model & docs  | Publish the mechanism, the fee split, and this document. *(current phase)*    |
 | Phase 1 | Contracts     | Ship the vault and the fee hook, verified on Blockscout, 85/15 split on chain.|
 | Phase 2 | Launch        | Deploy `$SKIM`, seed liquidity, open the vault. Staking and claiming go live. |
 | Phase 3 | Depth         | Grow volume and liquidity, and use the treasury to reinforce both.           |

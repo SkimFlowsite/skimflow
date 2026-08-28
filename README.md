@@ -4,106 +4,108 @@
 
 # Skimflow
 
-**Skim the fee. Not the tokens.**
-
-Real ETH yield from trade fees — stake `$SKIM`, collect a pro-rata share of every
-trade's fee in ETH, on [Robinhood Chain](https://robinhood.com) (chain id `4663`).
+Skim the fee. Not the tokens.
 
 [![CI](https://github.com/SkimFlowsite/skimflow/actions/workflows/ci.yml/badge.svg)](https://github.com/SkimFlowsite/skimflow/actions/workflows/ci.yml)
 [![Site](https://img.shields.io/badge/site-skimflow.site-EF5A26)](https://skimflow.site)
 [![Docs](https://img.shields.io/badge/docs-whitepaper-111210)](https://skimflow.site/docs)
 [![X](https://img.shields.io/badge/X-@SkimFlowsite-111210)](https://x.com/SkimFlowsite)
-[![Status](https://img.shields.io/badge/status-pre--launch-EF5A26)](#roadmap)
 [![License](https://img.shields.io/badge/license-MIT-111210)](LICENSE)
 
 </div>
 
 ---
 
-## What is Skimflow
+Skimflow is a staking protocol on Robinhood Chain (chain id `4663`). Staking `$SKIM`
+earns a pro-rata share, paid in ETH, of the fee charged on every `$SKIM` trade. Rewards
+are funded by trading fees rather than token emissions, so there is no inflation and no
+team-funded rewards budget.
 
-Most staking pays rewards by **printing new tokens**. That dilutes holders and only
-lasts while emissions last. Skimflow pays rewards from a real, recurring source
-instead: the fee charged on every trade of its own token.
-
-A **3% fee in ETH** is taken on each buy and sell, routed to a vault contract, and
-streamed to stakers pro rata. There is no inflation and no team funding of rewards.
-**Yield exists exactly as long as people trade.**
-
-> In one line: **stake `$SKIM`, and you become the house.** Every trade pays a toll,
-> and stakers collect it in ETH, proportional to their share of the staked pool.
-
-## How it works
+## Architecture
 
 ```
-          buy 3%  ─┐
-          sell 3% ─┼──►  v4 fee hook  ──►  Skimflow vault  ──►  85%  ──►  stakers (ETH, pro rata)
-       (fee in ETH)                          (fee recipient)     15%  ──►  protocol treasury
+  buy  3% ─┐
+  sell 3% ─┼──►  SkimFeeHook (v4)  ──►  SkimVault  ──►  85%  ──►  stakers (ETH, pro rata)
+ (in ETH)                             (fee recipient)   15%  ──►  treasury
 ```
 
-1. The `$SKIM` Uniswap v4 pool charges **3% in ETH** on every swap (buy and sell).
-2. The hook's fee recipient is the **vault contract**, not a wallet.
-3. Each fee is split on chain: **85% to stakers, 15% to treasury**.
-4. Stakers **stake / claim / unstake** anytime — no lockups, no epochs, non-custodial.
+- **SkimFeeHook** — a Uniswap v4 hook on the `$SKIM`/ETH pool. It takes 3% of every swap
+  in ETH (buys and sells) and forwards it to the vault.
+- **SkimVault** — receives the fee, keeps 15% for the treasury, and distributes 85% to
+  stakers via a reward-per-share accumulator. Staking, claiming, and unstaking are
+  permissionless and non-custodial. There is no owner and no admin over stakes.
 
-## Accrual model
+## Contracts
 
-Rewards use a standard O(1) accumulator so distribution cost is independent of the
-number of stakers. The vault tracks a running `accRewardPerShare`:
+| Contract      | Description                                                        | Status              |
+| ------------- | ----------------------------------------------------------------- | ------------------- |
+| `SkimVault`   | Staking vault. Accrues ETH per share; claim/unstake anytime.      | Implemented, tested |
+| `SkimFeeHook` | v4 hook. 3% ETH fee per swap, forwarded to the vault.             | Implemented         |
+| `SKIM`        | Fixed-supply ERC-20, 1,000,000,000 units, no transfer tax.        | Pending deployment  |
+
+Source: [`contracts/`](contracts). Interfaces in
+[`contracts/src/interfaces`](contracts/src/interfaces).
+
+## Reward accounting
+
+Distribution is O(1) in the number of stakers. The vault maintains a running
+`accRewardPerShare`; a staker's balance is derived from it and a per-account
+`rewardDebt` set on each interaction.
 
 ```solidity
-// on each fee arrival (the 85% staker share of the 3% trade fee)
-accRewardPerShare += feeIn * 1e18 / totalStaked;
+// on each fee (the 85% staker share)
+accRewardPerShare += feeIn * ACC_PRECISION / totalStaked;
 
-// a staker's claimable ETH at any time
-pending(user) = stake[user] * accRewardPerShare / 1e18 - rewardDebt[user];
-
-// on stake / unstake / claim: settle, then reset the debt
-rewardDebt[user] = stake[user] * accRewardPerShare / 1e18;
+// claimable at any time
+pending(user) = stake[user] * accRewardPerShare / ACC_PRECISION - rewardDebt[user];
 ```
 
-You earn exactly your share of the fees that arrive **while you are staked** — nothing
-before, nothing after. Full derivation in the [whitepaper](docs/whitepaper.md).
+A staker earns exactly the fees that arrive while their stake is active. Derivation:
+[whitepaper §4](docs/whitepaper.md#4--accrual-math).
 
-## Repository layout
+## Build
 
-| Path            | What's inside                                                        |
-| --------------- | ------------------------------------------------------------------- |
-| `docs/`         | Whitepaper and protocol documentation                               |
-| `contracts/`    | Solidity contracts — vault + fee hook (Foundry). See status below.  |
-| `web/`          | Source of the live site at [skimflow.site](https://skimflow.site)   |
+```bash
+git clone --recurse-submodules https://github.com/SkimFlowsite/skimflow
+cd skimflow/contracts
+forge build
+forge test
+```
 
 ## Parameters
 
-| Parameter    | Value                              |
-| ------------ | ---------------------------------- |
-| Chain        | Robinhood Chain · `4663`           |
+| Parameter    | Value                                |
+| ------------ | ------------------------------------ |
+| Chain        | Robinhood Chain · `4663`             |
 | Token        | `$SKIM` · 1,000,000,000 fixed supply |
-| Trade fee    | 3% per swap, in ETH                |
-| Fee split    | 85% stakers · 15% treasury         |
-| Lockup       | None                               |
-| Custody      | Non-custodial                      |
-| Payout asset | ETH                                |
+| Trade fee    | 3% per swap, in ETH                  |
+| Fee split    | 85% stakers · 15% treasury           |
+| Lockup       | None                                 |
+| Custody      | Non-custodial                        |
+| Payout asset | ETH                                  |
 
-## Roadmap
+## Layout
 
-- [x] **Phase 0 — Model & docs.** Publish the mechanism, the fee split, and the whitepaper.
-- [ ] **Phase 1 — Contracts.** Ship the vault and fee hook, verified on Blockscout, 85/15 split enforced on chain.
-- [ ] **Phase 2 — Launch.** Deploy `$SKIM`, seed liquidity, open the vault.
-- [ ] **Phase 3 — Depth.** Grow volume and liquidity; use the treasury to reinforce both.
+| Path         | Contents                                          |
+| ------------ | ------------------------------------------------- |
+| `contracts/` | Solidity sources and tests (Foundry)              |
+| `docs/`      | Whitepaper and protocol documentation             |
+| `web/`       | Source of [skimflow.site](https://skimflow.site)  |
 
 ## Status
 
-**Pre-launch.** The model, documentation, and site are live. The vault and fee-hook
-contracts are being finalized (Phase 1) and this repository will carry the verified
-addresses once deployed. See [`contracts/README.md`](contracts/README.md).
+Pre-launch. The vault and hook are implemented and covered by the test suite; the token
+is not yet deployed. Verified addresses will be published here on deployment. See
+[CHANGELOG](CHANGELOG.md).
 
-## Disclaimer
+## Security
 
-Skimflow is experimental on-chain software. Rewards depend on real trading volume and
-are **not guaranteed**; in quiet markets the stream pays little or nothing. Nothing in
-this repository is financial advice. Review the contracts and never stake more than you
-can afford to lose.
+The core is designed to be non-upgradeable: no owner, no admin over stakes, fixed fee
+split. Report vulnerabilities per [SECURITY.md](SECURITY.md). An external audit is
+planned before mainnet deployment.
+
+Rewards depend on trading volume and are not guaranteed. Skimflow is experimental
+software; review the contracts before use.
 
 ## License
 
