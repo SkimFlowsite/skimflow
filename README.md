@@ -9,6 +9,7 @@
 Real ETH yield from trade fees — stake `$SKIM`, collect a pro-rata share of every
 trade's fee in ETH, on [Robinhood Chain](https://robinhood.com) (chain id `4663`).
 
+[![CI](https://github.com/SkimFlowsite/skimflow/actions/workflows/ci.yml/badge.svg)](https://github.com/SkimFlowsite/skimflow/actions/workflows/ci.yml)
 [![Site](https://img.shields.io/badge/site-skimflow.site-EF5A26)](https://skimflow.site)
 [![Docs](https://img.shields.io/badge/docs-whitepaper-111210)](https://skimflow.site/docs)
 [![X](https://img.shields.io/badge/X-@SkimFlowsite-111210)](https://x.com/SkimFlowsite)

@@ -1,0 +1,45 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  contracts:
+    name: contracts (forge)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Format check
+        run: forge fmt --check
+        working-directory: contracts
+
+      - name: Build
+        run: forge build --sizes
+        working-directory: contracts
+
+      - name: Test
+        run: forge test -vvv
+        working-directory: contracts
+
+  structure:
+    name: repo structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify required files
+        run: |
+          set -e
+          for f in README.md LICENSE SECURITY.md docs/whitepaper.md \
+                   contracts/src/SkimVault.sol web/index.html; do
+            test -f "$f" || { echo "missing: $f"; exit 1; }
+          done
+          grep -q "Skim the fee" web/index.html
+          echo "ok"
