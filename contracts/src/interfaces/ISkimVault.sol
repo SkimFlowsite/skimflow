@@ -38,10 +38,12 @@ interface ISkimVault {
     /// @return ethAmount The amount of ETH transferred.
     function claim() external returns (uint256 ethAmount);
 
-    /// @notice Receive a fee distribution from the hook and update `accRewardPerShare`.
-    /// @dev Only callable by the configured fee source (the v4 hook / forwarder).
-    ///      The caller sends the 85% staker share; the 15% treasury share is routed
-    ///      separately and never enters the staker accumulator.
+    /// @notice Receive a trade fee (in ETH) and distribute it.
+    /// @dev Permissionless: the v4 hook forwards the fee here, but anyone may add to
+    ///      the stream. The vault splits the incoming amount on chain — 15% to the
+    ///      treasury, 85% into `accRewardPerShare` for stakers. If there are no
+    ///      stakers, the whole amount routes to the treasury. `receive()` behaves
+    ///      identically for plain ETH transfers.
     function notifyFee() external payable;
 
     /*//////////////////////////////////////////////////////////////

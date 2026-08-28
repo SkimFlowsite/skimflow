@@ -4,16 +4,19 @@ Solidity contracts for the Skimflow protocol, built with [Foundry](https://book.
 
 ## Components
 
-| Contract        | Role                                                                             | Status         |
-| --------------- | -------------------------------------------------------------------------------- | -------------- |
-| `SkimVault`     | Stake `$SKIM`, accrue ETH via `accRewardPerShare`, claim / unstake anytime.      | In development |
-| `SkimFeeHook`   | Uniswap v4 hook — takes 3% in ETH per swap, forwards to the vault as fee recipient. | In development |
-| `SKIM` (ERC-20) | Fixed-supply 1,000,000,000 token, no transfer tax.                               | In development |
+| Contract        | Role                                                                             | Status              |
+| --------------- | -------------------------------------------------------------------------------- | ------------------- |
+| `SkimVault`     | Stake `$SKIM`, accrue ETH via `accRewardPerShare`, claim / unstake anytime.      | Implemented, tested |
+| `SkimFeeHook`   | Uniswap v4 hook — takes 3% in ETH per swap, forwards to the vault as fee recipient. | In development      |
+| `SKIM` (ERC-20) | Fixed-supply 1,000,000,000 token, no transfer tax.                               | In development      |
 
-The public interface the vault will implement is sketched in
-[`src/interfaces/ISkimVault.sol`](src/interfaces/ISkimVault.sol). The fee split
-(**85% stakers / 15% treasury**) and the O(1) accrual accumulator are described in the
-[whitepaper](../docs/whitepaper.md#4--accrual-math).
+`SkimVault` ([`src/SkimVault.sol`](src/SkimVault.sol)) implements
+[`ISkimVault`](src/interfaces/ISkimVault.sol): the **85% stakers / 15% treasury** split
+and the O(1) accrual accumulator described in the
+[whitepaper](../docs/whitepaper.md#4--accrual-math). It is deliberately trustless — no
+owner, no admin, no function that can pause or move a user's stake; the token, treasury,
+and split are fixed at deployment. Covered by a unit + fuzz suite in
+[`test/SkimVault.t.sol`](test/SkimVault.t.sol).
 
 ## Status
 
@@ -27,10 +30,10 @@ verified on Blockscout, this README will carry the addresses:
 | `SkimVault` | _at launch_    |
 | `SkimFeeHook` | _at launch_  |
 
-## Build & test (once source lands)
+## Build & test
 
 ```bash
-forge install
+git submodule update --init --recursive   # fetches forge-std
 forge build
 forge test -vvv
 ```

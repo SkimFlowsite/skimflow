@@ -2,7 +2,6 @@
 contracts/out/
 contracts/cache/
 contracts/broadcast/
-contracts/lib/
 
 # Node / tooling
 node_modules/
