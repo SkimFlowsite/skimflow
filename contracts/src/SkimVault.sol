@@ -17,6 +17,9 @@ import { ISkimVault } from "./interfaces/ISkimVault.sol";
 ///             Staking, claiming, and unstaking never require permission.
 ///           - Fee intake is permissionless: the v4 hook forwards fees here, but any
 ///             address may top up the stream by sending ETH.
+///           - Liveness-isolated: the treasury payout is best-effort and non-reverting,
+///             so a misbehaving treasury can never brick swaps, fee intake, or staker
+///             rewards. An undelivered cut stays recoverable via `sweepUnaccounted()`.
 contract SkimVault is ISkimVault {
     /*//////////////////////////////////////////////////////////////
                                 CONSTANTS
@@ -217,8 +220,11 @@ contract SkimVault is ISkimVault {
         emit FeeDistributed(stakersCut, accRewardPerShare);
 
         if (treasuryCut > 0) {
+            // Best-effort, NON-reverting: a misbehaving treasury must never be able to
+            // brick fee settlement, swaps, or staker rewards. If delivery fails, the cut
+            // simply stays as unaccounted ETH, recoverable later via sweepUnaccounted().
             (bool ok,) = _treasury.call{ value: treasuryCut }("");
-            require(ok, "TREASURY_TRANSFER_FAIL");
+            ok; // intentionally ignored; see above
         }
     }
 

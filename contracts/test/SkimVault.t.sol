@@ -214,6 +214,30 @@ contract SkimVaultTest is Test {
         vault.sweepUnaccounted();
     }
 
+    function test_RevertingTreasuryDoesNotBrickFeesOrRewards() public {
+        // A treasury that rejects ETH must never be able to brick fee settlement,
+        // swaps, or staker rewards.
+        RevertingReceiver bad = new RevertingReceiver();
+        SkimVault v = new SkimVault(address(skim), address(bad));
+
+        vm.prank(alice);
+        skim.approve(address(v), type(uint256).max);
+        vm.prank(alice);
+        v.stake(100 * ONE);
+
+        // fee must NOT revert even though the treasury reverts on receive
+        vm.deal(address(this), 1 * ONE);
+        v.notifyFee{ value: 1 * ONE }();
+
+        // staker reward is intact and claimable
+        assertEq(v.pending(alice), 0.85 * 1e18);
+        vm.prank(alice);
+        assertEq(v.claim(), 0.85 * 1e18);
+
+        // the undelivered 0.15 treasury cut is unaccounted, not lost to stakers
+        assertEq(v.unaccounted(), 0.15 * 1e18);
+    }
+
     /*//////////////////////////////////////////////////////////////
                               INVARIANT-ish
     //////////////////////////////////////////////////////////////*/
@@ -234,5 +258,12 @@ contract SkimVaultTest is Test {
 
         // ...and treasury + claimable never exceeds what came in (rounding dust stays put)
         assertLe(treasury.balance + vault.pending(alice), f, "no over-distribution");
+    }
+}
+
+/// @notice A treasury that rejects every ETH transfer, used to prove liveness.
+contract RevertingReceiver {
+    receive() external payable {
+        revert("NO_ETH");
     }
 }

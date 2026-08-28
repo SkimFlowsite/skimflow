@@ -113,6 +113,7 @@ enforced on chain.
 - **Fixed rules.** The fee split and accrual logic are set in the deployed contract; the core is designed to be non-upgradeable.
 - **Verifiable.** The vault, the token, and every distribution are readable on Blockscout. Trust the explorer, not a dashboard.
 - **No stuck fees.** When no one is staked, a fee has no stakers to accrue to, so the whole amount routes to the treasury rather than being lost. A `sweepUnaccounted()` function can recover rounding dust or ETH force-sent to the contract, but it is mathematically bounded to `balance − rewards owed to stakers` and can never touch a staker's earned ETH.
+- **Liveness-isolated treasury.** The 15% treasury payout is best-effort and cannot revert, so even a misconfigured treasury can never brick swaps, fee settlement, or staker claims; an undelivered cut is simply left recoverable by `sweepUnaccounted()`.
 
 ## 8 · Risks
 
