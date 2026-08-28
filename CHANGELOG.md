@@ -9,12 +9,13 @@ All notable changes to this project are documented here. The format is based on
 - `SkimVault` staking vault: stake `$SKIM`, accrue ETH via an O(1)
   `accRewardPerShare` accumulator, claim and unstake at any time.
 - On-chain 85% / 15% fee split (stakers / treasury), enforced by the contract.
+- `SkimFeeHook` — Uniswap v4 hook charging 3% in ETH on every buy and sell and
+  forwarding it to the vault as fee recipient.
 - `ISkimVault` interface and full Foundry test suite (unit + fuzz).
 
 ### Pending
-- `SkimFeeHook` — the Uniswap v4 hook that charges the 3% ETH fee and forwards it
-  to the vault.
 - `$SKIM` token deployment and verified addresses.
+- Hook integration tests against a live `PoolManager` fixture.
 
 ## [0.1.0] - 2026-08-29
 
