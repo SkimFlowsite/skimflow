@@ -14,10 +14,12 @@ All notable changes to this project are documented here. The format is based on
 - `sweepUnaccounted()` — recovers rounding dust and force-sent ETH to the treasury;
   provably bounded so it can never touch ETH credited to stakers.
 - `ISkimVault` interface and full Foundry test suite (unit + fuzz).
+- Hook integration tests against a live Uniswap v4 `PoolManager`: a real ETH/`$SKIM`
+  pool exercises buy and sell swaps and asserts the 3% ETH fee routes to the vault
+  with the 85/15 split, on both the `beforeSwap` and `afterSwap` paths.
 
 ### Pending
 - `$SKIM` token deployment and verified addresses.
-- Hook integration tests against a live `PoolManager` fixture.
 
 ## [0.1.0] - 2026-08-29
 

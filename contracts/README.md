@@ -7,7 +7,7 @@ Solidity contracts for the Skimflow protocol, built with [Foundry](https://book.
 | Contract        | Role                                                                             | Status              |
 | --------------- | -------------------------------------------------------------------------------- | ------------------- |
 | `SkimVault`     | Stake `$SKIM`, accrue ETH via `accRewardPerShare`, claim / unstake anytime.      | Implemented, tested |
-| `SkimFeeHook`   | Uniswap v4 hook — takes 3% in ETH per swap, forwards to the vault as fee recipient. | Implemented         |
+| `SkimFeeHook`   | Uniswap v4 hook — takes 3% in ETH per swap, forwards to the vault as fee recipient. | Implemented, tested |
 | `SKIM` (ERC-20) | Fixed-supply 1,000,000,000 token, no transfer tax.                               | In development      |
 
 `SkimVault` ([`src/SkimVault.sol`](src/SkimVault.sol)) implements
