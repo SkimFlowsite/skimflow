@@ -91,9 +91,7 @@ Depositing does not dilute past rewards, and leaving does not forfeit earned rew
 
 `$SKIM` is a fixed-supply ERC-20 of **1,000,000,000** tokens, minted once, with no transfer
 tax. Its single utility is access to the fee stream: to skim, you stake `$SKIM`. Demand to
-earn therefore translates into demand to hold and stake the token. Final allocation is
-published at launch; the founder allocation is staked into the same vault under the same
-rules as everyone else.
+earn therefore translates into demand to hold and stake the token.
 
 ## 6 · Protocol treasury
 
